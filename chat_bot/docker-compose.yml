@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    command: serve
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ..
+      dockerfile: chat_bot/Dockerfile
+    container_name: rag-bot
+    depends_on:
+      - ollama
+    ports:
+      - "8000:8000"
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      CHROMA_DIR: /app/chroma_db
+    volumes:
+      - ../chroma_db:/app/chroma_db
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
