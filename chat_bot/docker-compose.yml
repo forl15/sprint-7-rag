@@ -16,7 +16,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: Task4/Dockerfile
+      dockerfile: chat_bot/Dockerfile
     container_name: rag-bot
     depends_on:
       - ollama

@@ -1,17 +1,18 @@
 from pathlib import Path
 import chromadb
-from langchain_ollama import OllamaEmbeddings
+from sentence_transformers import SentenceTransformer
 
 ROOT_DIR = Path(__file__).resolve().parent
 CHROMA_DIR = ROOT_DIR.parent / "chroma_db"
 
 
 def query_vector_index(query: str, top_k: int = 5, chroma_dir=CHROMA_DIR):
-    embedding_model = OllamaEmbeddings(model="nomic-embed-text-v2-moe")
+
+    embedding_model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
     client = chromadb.PersistentClient(path=str(chroma_dir))
     collection = client.get_collection(name="knowledge_base")
 
-    query_embedding = embedding_model.embed_query(query)
+    query_embedding = embedding_model.encode_query(query)
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=top_k,
@@ -30,7 +31,7 @@ def query_vector_index(query: str, top_k: int = 5, chroma_dir=CHROMA_DIR):
 
 
 def main():
-    query = "Что такое ин бук?"
+    query = "Чем известен Фарад Орион?"
     results = query_vector_index(query, top_k=5)
     print(f"Query: {query}\n")
     for result in results:

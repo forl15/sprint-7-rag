@@ -1,4 +1,6 @@
 from pathlib import Path
+import time
+from sentence_transformers import SentenceTransformer
 
 import chromadb
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -54,8 +56,11 @@ def build_vector_index(kb_dir=KB_DIR, chroma_dir=CHROMA_DIR):
         })
 
     chunks = split_documents_into_chunks(docs)
+    print(f"Total documents: {len(docs)}")
+    print(f"Total chunks: {len(chunks)}")
 
-    embeddings = OllamaEmbeddings(model="nomic-embed-text-v2-moe")
+    # embeddings = OllamaEmbeddings(model="nomic-embed-text-v2-moe")
+    embeddings = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
 
     client = chromadb.PersistentClient(path=str(chroma_dir))
     try:
@@ -78,7 +83,8 @@ def build_vector_index(kb_dir=KB_DIR, chroma_dir=CHROMA_DIR):
         }
         for chunk in chunks
     ]
-    vectors = embeddings.embed_documents(texts)
+    # vectors = embeddings.embed_documents(texts)
+    vectors = embeddings.encode(texts)
 
     collection.add(
         ids=ids,
@@ -88,8 +94,13 @@ def build_vector_index(kb_dir=KB_DIR, chroma_dir=CHROMA_DIR):
     )
 
 def main():
+    start_time = time.perf_counter()
     build_vector_index()
+    end_time = time.perf_counter()
+    execution_time = end_time - start_time
+
     print(f"Index created in: {CHROMA_DIR}")
+    print(f"Elapsed time {execution_time:.6f} seconds")
 
 if __name__ == "__main__":
     main()
